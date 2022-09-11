@@ -368,6 +368,19 @@ class BrowserView:
 
         glib.idle_add(_restore)
 
+    def create_text_dialog(self, title, message):
+        dialog = gtk.MessageDialog(parent=self.window, flags=gtk.DialogFlags.MODAL & gtk.DialogFlags.DESTROY_WITH_PARENT,
+                                      type=gtk.MessageType.QUESTION,
+                                      text=title,
+                                      message=message,
+                                      buttons=Gtk.ButtonsType.OK_CANCEL)
+        response = dialog.run()
+        dialog.destroy()
+        if response == gtk.ResponseType.OK:
+            return 1
+
+        return 0
+
     def create_file_dialog(self, dialog_type, directory, allow_multiple, save_filename, file_types):
         if dialog_type == FOLDER_DIALOG:
             gtk_dialog_type = gtk.FileChooserAction.SELECT_FOLDER
@@ -659,6 +672,21 @@ def get_active_window():
             return browser_view_instance.pywebview_window
 
     return None
+
+
+def create_text_dialog(title, message, uid):
+    i = BrowserView.instances[uid]
+    result_semaphore = Semaphore(0)
+    result = -1
+
+    def _create():
+        result = i.create_text_dialog(title, message, uid)
+        result_semaphore.release()
+
+    glib.idle_add(_create)
+    result_semaphore.acquire()
+
+    return result
 
 
 def create_file_dialog(dialog_type, directory, allow_multiple, save_filename, file_types, uid):
