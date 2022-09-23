@@ -13,7 +13,7 @@ import webbrowser
 import socket
 from uuid import uuid1
 from copy import deepcopy
-from threading import Semaphore, Event
+from threading import Semaphore, Event, Thread
 import typing as t
 
 from webview import _debug, _user_agent, _private_mode, _storage_path, OPEN_DIALOG, FOLDER_DIALOG, SAVE_DIALOG, windows
@@ -726,7 +726,7 @@ def set_app_menu(app_menu_list):
                 m.addSeparator()
             elif isinstance(menu_line_item, MenuAction):
                 new_action = QAction(menu_line_item.title)
-                new_action.triggered.connect(menu_line_item.function)
+                new_action.triggered.connect(Thread(target=menu_line_item.function).start)
                 m.addAction(new_action)
                 BrowserView.global_menubar_other_objects.append(new_action)
             elif isinstance(menu_line_item, Menu):
